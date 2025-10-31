@@ -1,4 +1,4 @@
-import type { Route } from "./+types/home";
+import type { Route } from "./+types/dashboard";
 import Navbar from "~/components/Navbar";
 import ResumeCard from "~/components/ResumeCard";
 import {usePuterStore} from "~/lib/puter";
@@ -8,12 +8,12 @@ import type {Resume, KVItem} from "~/types";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Resumind" },
-    { name: "description", content: "Smart feedback for your dream job!" },
+    { title: "Dashboard - Resumind" },
+    { name: "description", content: "Track your resume applications and ratings" },
   ];
 }
 
-export default function Home() {
+export default function Dashboard() {
   const { auth, kv } = usePuterStore();
   const navigate = useNavigate();
   const [resumes, setResumes] = useState<Resume[]>([]);

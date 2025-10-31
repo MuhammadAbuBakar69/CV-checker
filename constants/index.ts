@@ -1,3 +1,5 @@
+import type { Resume } from "~/types";
+
 export const resumes: Resume[] = [
     {
         id: "1",
@@ -238,4 +240,84 @@ export const prepareInstructions = ({jobTitle, jobDescription}: { jobTitle: stri
       Provide the feedback using the following format:
       ${AIResponseFormat}
       Return the analysis as an JSON object, without any other text and without the backticks.
+      Do not include any other text or comments.`;
+
+export const HRReviewResponseFormat = `
+      interface HRReview {
+      overallSuitability: string; // 1-2 sentence summary
+      skillAlignment: {
+        matchedSkills: string[]; // list of skills that match
+        missingSkills: string[]; // list of skills that are missing
+      };
+      experienceReview: string; // detailed review of experience relevance
+      suggestions: string[]; // 3-5 actionable improvement tips
+      roleFitScore: number; // 0-100 score
+    }`;
+
+export const prepareHRInstructions = ({jobTitle, jobDescription}: { jobTitle: string; jobDescription: string; }) =>
+    `You are an experienced HR professional reviewing a candidate's resume for a specific role.
+      Be thorough, professional, and provide actionable feedback.
+      
+      Job Title: ${jobTitle}
+      Job Description: ${jobDescription}
+      
+      Write a structured HR review including:
+      - Overall Suitability: A 1-2 sentence summary of how well the resume matches the role
+      - Skill Alignment: List matched skills and missing skills that would be beneficial
+      - Experience Review: How relevant and strong the experience is for this role
+      - Suggestions for Improvement: 3-5 actionable tips to improve candidacy
+      - A Role Fit Score: 0-100 rating based on overall match
+      
+      Be honest but constructive. If the candidate is a poor fit, explain why and suggest improvements.
+      If they're a strong fit, highlight what makes them stand out.
+      
+      Provide the review using the following format:
+      ${HRReviewResponseFormat}
+      Return the analysis as a JSON object, without any other text and without the backticks.
+      Do not include any other text or comments.`;
+
+export const ImprovedResumeFormat = `
+      interface ImprovedResume {
+      summary: string; // Professional summary optimized for the role
+      skills: string[]; // Array of relevant skills
+      experience: string; // Rewritten experience section with stronger results
+      education: string; // Education section
+      estimatedScore: number; // Estimated role fit score after improvement (80-100)
+    }`;
+
+export const prepareImprovementInstructions = ({
+  jobTitle,
+  jobDescription,
+  hrFeedback,
+}: {
+  jobTitle: string;
+  jobDescription: string;
+  hrFeedback: string;
+}) =>
+    `You are an expert resume writer and HR recruiter specializing in ATS optimization.
+      The candidate's HR feedback indicates areas for improvement.
+      
+      Job Title: ${jobTitle}
+      Job Description: ${jobDescription}
+      HR Feedback: ${hrFeedback}
+      
+      Rewrite the resume to significantly increase its Role Fit Score (target: 85-95).
+      Focus on:
+      1. Adding relevant keywords for "${jobTitle}" naturally throughout
+      2. Quantifying achievements with metrics (%, $, numbers)
+      3. Strengthening action verbs and impact statements
+      4. Highlighting skills mentioned in the job description
+      5. Making content more ATS-friendly and scannable
+      6. Professional tone appropriate for the industry
+      
+      Output a complete improved resume with these sections:
+      - Summary: 2-3 sentences highlighting relevant experience and value proposition
+      - Skills: Array of 8-12 relevant technical and soft skills
+      - Experience: Rewritten work history with bullet points focusing on achievements
+      - Education: Degree(s), institution(s), and relevant certifications
+      - EstimatedScore: Predicted role fit score after these improvements (85-95)
+      
+      Provide the improved resume using the following format:
+      ${ImprovedResumeFormat}
+      Return the result as a JSON object, without any other text and without the backticks.
       Do not include any other text or comments.`;

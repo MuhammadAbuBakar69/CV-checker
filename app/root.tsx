@@ -6,11 +6,11 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
+import { useEffect } from "react";
 
 import type { Route } from "./+types/root";
 import "./app.css";
 import {usePuterStore} from "~/lib/puter";
-import {useEffect} from "react";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -29,7 +29,32 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const { init } = usePuterStore();
 
   useEffect(() => {
-    init()
+    init();
+
+    // Suppress Puter-related console errors for better UX
+    const originalConsoleError = console.error;
+    console.error = (...args: any[]) => {
+      const errorMsg = args[0]?.toString() || '';
+      
+      // Filter out known Puter errors that are handled gracefully
+      if (
+        errorMsg.includes('message channel closed') ||
+        errorMsg.includes('404 (Not Found)') ||
+        errorMsg.includes('api.puter.com') ||
+        errorMsg.includes('Failed to load resource')
+      ) {
+        // Silently ignore these errors - they're handled by our error states
+        return;
+      }
+      
+      // Log all other errors normally
+      originalConsoleError.apply(console, args);
+    };
+
+    return () => {
+      // Restore original console.error on cleanup
+      console.error = originalConsoleError;
+    };
   }, [init]);
 
   return (
