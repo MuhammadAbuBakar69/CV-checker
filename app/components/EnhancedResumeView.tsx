@@ -14,6 +14,13 @@ interface UpdateResult {
   feedback: string;
 }
 
+interface EditableHeadings {
+  summary: string;
+  skills: string;
+  experience: string;
+  education: string;
+}
+
 const EnhancedResumeView = ({ improvedResume, jobTitle = "the target role", onSave, onApply }: EnhancedResumeViewProps) => {
   const { ai } = usePuterStore();
   const [isEditing, setIsEditing] = useState(false);
@@ -21,6 +28,12 @@ const EnhancedResumeView = ({ improvedResume, jobTitle = "the target role", onSa
   const [isUpdating, setIsUpdating] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
   const [updateResult, setUpdateResult] = useState<UpdateResult | null>(null);
+  const [headings, setHeadings] = useState<EditableHeadings>({
+    summary: '📝 Professional Summary',
+    skills: '🎯 Key Skills',
+    experience: '💼 Professional Experience',
+    education: '🎓 Education'
+  });
   const resumeRef = useRef<HTMLDivElement>(null);
 
   const handleSave = () => {
@@ -180,6 +193,13 @@ Be honest and constructive in your feedback.`;
 
   return (
     <div className="bg-white rounded-2xl shadow-md w-full p-6 animate-in fade-in duration-1000">
+      {/* Info Banner */}
+      <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-600 rounded-lg">
+        <p className="text-blue-900 font-semibold text-sm">
+          ✨ <strong>Pro Tip:</strong> You can now edit any heading, text, or content below before downloading. Simply click the "Edit Resume" button to make changes!
+        </p>
+      </div>
+
       {/* Header with Score */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -232,23 +252,34 @@ Be honest and constructive in your feedback.`;
         </button>
         <button
           onClick={handleDownloadPDF}
-          className="px-6 py-2 primary-gradient text-white rounded-full hover:opacity-90 transition-opacity"
-          title="Download resume as PDF or print"
+          className="px-8 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold flex items-center gap-2"
+          title="Download resume as PDF. You can edit content before downloading!"
         >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2m0 0v-8m0 8H3m15 0h3" />
+          </svg>
           📥 Download PDF
         </button>
       </div>
 
       {/* Update Result Display */}
       {updateResult && (
-        <div className="mb-6 p-4 bg-green-50 rounded-lg border-2 border-green-200 animate-in fade-in duration-500">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">✅</span>
-            <div>
-              <p className="text-lg font-bold text-green-800">
-                New Score: {updateResult.newScore}
+        <div className="mb-6 p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border-2 border-green-300 shadow-md animate-in fade-in duration-500">
+          <div className="flex items-start gap-4">
+            <span className="text-4xl">✅</span>
+            <div className="flex-1">
+              <p className="text-lg font-bold text-green-800 mb-2">
+                Congratulations! New Score: <span className="text-2xl text-green-700">{updateResult.newScore}</span>
               </p>
-              <p className="text-sm text-green-700">{updateResult.feedback}</p>
+              <p className="text-sm text-green-700 mb-4">{updateResult.feedback}</p>
+              <div className="bg-white p-3 rounded-lg border border-green-200">
+                <p className="text-sm text-green-800 font-semibold">
+                  💡 You can now:<br/>
+                  • ✏️ Edit any text, heading, or content<br/>
+                  • 📥 Download as PDF<br/>
+                  • ✅ Apply to your CV
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -258,9 +289,18 @@ Be honest and constructive in your feedback.`;
       <div ref={resumeRef} className="resume-content">
         {/* Summary Section */}
       <div className="mb-6">
-        <h3 className="text-xl font-semibold text-black mb-3 flex items-center gap-2">
-          <span>📝</span> Professional Summary
-        </h3>
+        {isEditing ? (
+          <input
+            type="text"
+            value={headings.summary}
+            onChange={(e) => setHeadings({ ...headings, summary: e.target.value })}
+            className="text-xl font-semibold text-black mb-3 w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        ) : (
+          <h3 className="text-xl font-semibold text-black mb-3 flex items-center gap-2">
+            <span>{headings.summary.split(' ')[0]}</span> {headings.summary.split(' ').slice(1).join(' ')}
+          </h3>
+        )}
         {isEditing ? (
           <textarea
             value={editedResume.summary}
@@ -276,9 +316,18 @@ Be honest and constructive in your feedback.`;
 
       {/* Skills Section */}
       <div className="mb-6">
-        <h3 className="text-xl font-semibold text-black mb-3 flex items-center gap-2">
-          <span>🎯</span> Key Skills
-        </h3>
+        {isEditing ? (
+          <input
+            type="text"
+            value={headings.skills}
+            onChange={(e) => setHeadings({ ...headings, skills: e.target.value })}
+            className="text-xl font-semibold text-black mb-3 w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        ) : (
+          <h3 className="text-xl font-semibold text-black mb-3 flex items-center gap-2">
+            <span>{headings.skills.split(' ')[0]}</span> {headings.skills.split(' ').slice(1).join(' ')}
+          </h3>
+        )}
         {isEditing ? (
           <textarea
             value={editedResume.skills.join(', ')}
@@ -305,9 +354,18 @@ Be honest and constructive in your feedback.`;
 
       {/* Experience Section */}
       <div className="mb-6">
-        <h3 className="text-xl font-semibold text-black mb-3 flex items-center gap-2">
-          <span>💼</span> Professional Experience
-        </h3>
+        {isEditing ? (
+          <input
+            type="text"
+            value={headings.experience}
+            onChange={(e) => setHeadings({ ...headings, experience: e.target.value })}
+            className="text-xl font-semibold text-black mb-3 w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        ) : (
+          <h3 className="text-xl font-semibold text-black mb-3 flex items-center gap-2">
+            <span>{headings.experience.split(' ')[0]}</span> {headings.experience.split(' ').slice(1).join(' ')}
+          </h3>
+        )}
         {isEditing ? (
           <textarea
             value={editedResume.experience}
@@ -323,9 +381,18 @@ Be honest and constructive in your feedback.`;
 
       {/* Education Section */}
       <div className="mb-4">
-        <h3 className="text-xl font-semibold text-black mb-3 flex items-center gap-2">
-          <span>🎓</span> Education
-        </h3>
+        {isEditing ? (
+          <input
+            type="text"
+            value={headings.education}
+            onChange={(e) => setHeadings({ ...headings, education: e.target.value })}
+            className="text-xl font-semibold text-black mb-3 w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        ) : (
+          <h3 className="text-xl font-semibold text-black mb-3 flex items-center gap-2">
+            <span>{headings.education.split(' ')[0]}</span> {headings.education.split(' ').slice(1).join(' ')}
+          </h3>
+        )}
         {isEditing ? (
           <textarea
             value={editedResume.education}
