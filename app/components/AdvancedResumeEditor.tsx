@@ -8,6 +8,7 @@ interface AdvancedResumeEditorProps {
   onSave?: (edited: ImprovedResume) => void;
   onApply?: (edited: ImprovedResume) => Promise<void>;
   resumeScore?: number;
+  resumeImageUrl?: string;
 }
 
 const AdvancedResumeEditor = ({ 
@@ -15,7 +16,8 @@ const AdvancedResumeEditor = ({
   jobTitle = "the target role", 
   onSave,
   onApply,
-  resumeScore = 85
+  resumeScore = 85,
+  resumeImageUrl
 }: AdvancedResumeEditorProps) => {
   const [editedResume, setEditedResume] = useState(improvedResume);
   const [isSaving, setIsSaving] = useState(false);
@@ -220,77 +222,31 @@ const AdvancedResumeEditor = ({
         </div>
       </div>
 
-      {/* Right Column - Live Preview */}
-      <div className="bg-white rounded-xl shadow-lg p-8 overflow-y-auto max-h-screen sticky top-4">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">👀 Live Preview</h2>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-600">Score:</span>
-            <span className="text-2xl font-bold text-green-600">{resumeScore}</span>
-            <span className="text-2xl">⭐</span>
-          </div>
+      {/* Right Column - Original Resume Image */}
+      <div className="bg-white rounded-xl shadow-lg p-4 overflow-y-auto max-h-screen sticky top-4 flex flex-col">
+        <div className="mb-4">
+          <h2 className="text-xl font-bold text-gray-900 mb-1">📄 Your Original Resume</h2>
+          <p className="text-gray-600 text-sm">Original uploaded document</p>
         </div>
 
-        {/* Resume Preview */}
-        <div ref={previewRef} className="resume-preview text-gray-900">
-          {/* Name/Title */}
-          <div className="mb-6 pb-4 border-b-2 border-gray-300">
-            <h1 className="text-3xl font-bold text-gray-900">{jobTitle || 'Professional'}</h1>
-            <p className="text-gray-600 mt-1">Resume Preview</p>
+        {resumeImageUrl ? (
+          <div className="flex-1 flex items-center justify-center min-h-[500px] bg-gray-100 rounded-lg overflow-hidden">
+            <img 
+              src={resumeImageUrl} 
+              alt="Original Resume" 
+              className="w-full h-full object-contain"
+            />
           </div>
-
-          {/* Professional Summary */}
-          {editedResume.summary && (
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-gray-900 border-b border-gray-300 pb-2">
-                Professional Summary
-              </h2>
-              <p className="text-gray-700 mt-3 leading-relaxed whitespace-pre-wrap">
-                {editedResume.summary}
-              </p>
+        ) : (
+          <div className="flex-1 flex items-center justify-center min-h-[500px] bg-gray-100 rounded-lg">
+            <div className="text-center">
+              <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              <p className="text-gray-500">Resume image not available</p>
             </div>
-          )}
-
-          {/* Key Skills */}
-          {editedResume.skills.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-gray-900 border-b border-gray-300 pb-2">
-                Key Skills
-              </h2>
-              <div className="flex flex-wrap gap-2 mt-3">
-                {editedResume.skills.map((skill, idx) => (
-                  <span key={idx} className="skill-tag">
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Professional Experience */}
-          {editedResume.experience && (
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-gray-900 border-b border-gray-300 pb-2">
-                Professional Experience
-              </h2>
-              <div className="text-gray-700 mt-3 whitespace-pre-wrap leading-relaxed">
-                {editedResume.experience}
-              </div>
-            </div>
-          )}
-
-          {/* Education */}
-          {editedResume.education && (
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-gray-900 border-b border-gray-300 pb-2">
-                Education
-              </h2>
-              <div className="text-gray-700 mt-3 whitespace-pre-wrap leading-relaxed">
-                {editedResume.education}
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

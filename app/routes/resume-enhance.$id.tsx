@@ -16,6 +16,7 @@ const ResumeEnhance = () => {
     const [statusText, setStatusText] = useState('');
     const [improvedResume, setImprovedResume] = useState<ImprovedResume | null>(null);
     const [resumeData, setResumeData] = useState<Resume | null>(null);
+    const [resumeImageUrl, setResumeImageUrl] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -32,13 +33,24 @@ const ResumeEnhance = () => {
                 }
                 const data = JSON.parse(resume) as Resume;
                 setResumeData(data);
+                
+                // Load the resume image
+                try {
+                    const imageBlob = await fs.read(data.imagePath);
+                    if (imageBlob) {
+                        const imageUrl = URL.createObjectURL(imageBlob);
+                        setResumeImageUrl(imageUrl);
+                    }
+                } catch (imgErr) {
+                    console.warn('Failed to load resume image:', imgErr);
+                }
             } catch (error) {
                 console.error('Failed to load resume:', error);
                 navigate('/', { replace: true });
             }
         };
         loadResume();
-    }, [id, kv, navigate]);
+    }, [id, kv, navigate, fs]);
 
     const handleGenerateEnhancement = async () => {
         if (!resumeData) return;
@@ -234,6 +246,7 @@ Provide your response in the following JSON format (IMPORTANT: Return ONLY valid
                         resumeScore={improvedResume.estimatedScore || 85}
                         onSave={handleSave}
                         onApply={handleApplyEnhanced}
+                        resumeImageUrl={resumeImageUrl}
                     />
                 )}
             </div>
