@@ -123,6 +123,35 @@ Provide your response in the following JSON format (IMPORTANT: Return ONLY valid
         }
     };
 
+    const handleApplyEnhanced = async (updatedResume: ImprovedResume) => {
+        try {
+            if (!resumeData) return;
+
+            // Merge enhanced content with original resume
+            const appliedData = {
+                ...resumeData,
+                improvedResume: updatedResume,
+                // Update the main feedback with new estimated score
+                feedback: {
+                    ...resumeData.feedback,
+                    overallScore: updatedResume.estimatedScore || resumeData.feedback?.overallScore || 0,
+                }
+            };
+
+            await kv.set(`resume:${id}`, JSON.stringify(appliedData));
+            
+            alert('✅ Enhanced resume applied successfully!\n\nYour CV has been updated with the new content and score.');
+            
+            // Redirect back to the resume view
+            setTimeout(() => {
+                navigate(`/resume/${id}`);
+            }, 1500);
+        } catch (error) {
+            console.error('Failed to apply enhanced resume:', error);
+            alert('❌ Failed to apply enhanced resume. Please try again.');
+        }
+    };
+
     return (
         <main className="min-h-screen bg-gray-50">
             <nav className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10 shadow-sm">
@@ -202,12 +231,13 @@ Provide your response in the following JSON format (IMPORTANT: Return ONLY valid
                     <div>
                         <div className="mb-6 text-center">
                             <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Enhanced Resume</h2>
-                            <p className="text-gray-600">Edit, update score, and download as PDF</p>
+                            <p className="text-gray-600">Edit, update score, download as PDF, or apply to your CV</p>
                         </div>
                         <EnhancedResumeView 
                             improvedResume={improvedResume}
                             jobTitle={resumeData?.jobTitle || 'your target role'}
                             onSave={handleSave}
+                            onApply={handleApplyEnhanced}
                         />
                     </div>
                 )}

@@ -6,6 +6,7 @@ interface EnhancedResumeViewProps {
   improvedResume: ImprovedResume;
   jobTitle?: string;
   onSave?: (edited: ImprovedResume) => void;
+  onApply?: (edited: ImprovedResume) => Promise<void>;
 }
 
 interface UpdateResult {
@@ -13,17 +14,30 @@ interface UpdateResult {
   feedback: string;
 }
 
-const EnhancedResumeView = ({ improvedResume, jobTitle = "the target role", onSave }: EnhancedResumeViewProps) => {
+const EnhancedResumeView = ({ improvedResume, jobTitle = "the target role", onSave, onApply }: EnhancedResumeViewProps) => {
   const { ai } = usePuterStore();
   const [isEditing, setIsEditing] = useState(false);
   const [editedResume, setEditedResume] = useState(improvedResume);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
   const [updateResult, setUpdateResult] = useState<UpdateResult | null>(null);
   const resumeRef = useRef<HTMLDivElement>(null);
 
   const handleSave = () => {
     setIsEditing(false);
     onSave?.(editedResume);
+  };
+
+  const handleApplyEnhancedResume = async () => {
+    setIsApplying(true);
+    try {
+      await onApply?.(editedResume);
+    } catch (error) {
+      console.error('Error applying enhanced resume:', error);
+      alert('Failed to apply enhanced resume. Please try again.');
+    } finally {
+      setIsApplying(false);
+    }
   };
 
   const handleUpdateResume = async () => {
@@ -185,14 +199,14 @@ Be honest and constructive in your feedback.`;
         <button
           onClick={() => isEditing ? handleSave() : setIsEditing(true)}
           className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors disabled:opacity-50"
-          disabled={isUpdating}
+          disabled={isUpdating || isApplying}
         >
           {isEditing ? '💾 Save Changes' : '✏️ Edit Resume'}
         </button>
         <button
           onClick={handleUpdateResume}
           className="px-6 py-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-          disabled={isUpdating}
+          disabled={isUpdating || isApplying}
         >
           {isUpdating ? (
             <>
@@ -200,6 +214,20 @@ Be honest and constructive in your feedback.`;
             </>
           ) : (
             '🔄 Update Resume'
+          )}
+        </button>
+        <button
+          onClick={handleApplyEnhancedResume}
+          className="px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+          disabled={isUpdating || isApplying}
+          title="Apply enhanced resume to your CV and save it"
+        >
+          {isApplying ? (
+            <>
+              <span className="animate-spin">⏳</span> Applying...
+            </>
+          ) : (
+            '✅ Apply to CV'
           )}
         </button>
         <button
