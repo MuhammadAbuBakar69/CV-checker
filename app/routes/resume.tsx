@@ -257,7 +257,7 @@ const Resume = () => {
                                 <div className="flex flex-col gap-8 animate-in fade-in duration-1000">
                                     <Summary feedback={feedback} />
                                     
-                                    {/* Edit & Download Button */}
+                                    {/* Edit Inline Button */}
                                     <button
                                         onClick={() => setIsEditMode(true)}
                                         className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 w-fit"
@@ -265,7 +265,7 @@ const Resume = () => {
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
-                                        Edit & Download PDF
+                                        Edit Your Resume & Download PDF
                                     </button>
                                     
                                     {/* Show "Get Enhanced Resume" button if score is less than 80% */}
