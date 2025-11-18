@@ -1,7 +1,7 @@
 import {Link, useNavigate, useParams} from "react-router";
 import {useEffect, useState} from "react";
 import {usePuterStore} from "~/lib/puter";
-import EnhancedResumeView from "~/components/EnhancedResumeView";
+import AdvancedResumeEditor from "~/components/AdvancedResumeEditor";
 import type {ImprovedResume, Resume} from "~/types";
 
 export const meta = () => ([
@@ -167,7 +167,7 @@ Provide your response in the following JSON format (IMPORTANT: Return ONLY valid
                 </div>
             </nav>
 
-            <div className="max-w-7xl mx-auto px-6 py-12">
+            <div className="max-w-full mx-auto p-0">
                 {!improvedResume ? (
                     <div className="max-w-2xl mx-auto">
                         <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 text-center">
@@ -228,18 +228,13 @@ Provide your response in the following JSON format (IMPORTANT: Return ONLY valid
                         </div>
                     </div>
                 ) : (
-                    <div>
-                        <div className="mb-6 text-center">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Enhanced Resume</h2>
-                            <p className="text-gray-600">Edit, update score, download as PDF, or apply to your CV</p>
-                        </div>
-                        <EnhancedResumeView 
-                            improvedResume={improvedResume}
-                            jobTitle={resumeData?.jobTitle || 'your target role'}
-                            onSave={handleSave}
-                            onApply={handleApplyEnhanced}
-                        />
-                    </div>
+                    <AdvancedResumeEditor 
+                        improvedResume={improvedResume}
+                        jobTitle={resumeData?.jobTitle || 'your target role'}
+                        resumeScore={improvedResume.estimatedScore || 85}
+                        onSave={handleSave}
+                        onApply={handleApplyEnhanced}
+                    />
                 )}
             </div>
         </main>
