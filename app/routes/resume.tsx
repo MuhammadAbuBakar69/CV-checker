@@ -5,7 +5,7 @@ import Summary from "~/components/Summary";
 import ATS from "~/components/ATS";
 import Details from "~/components/Details";
 import InlineResumeEditor from "~/components/InlineResumeEditor";
-import type {Feedback} from "~/types";
+import type {Feedback, ImprovedResume} from "~/types";
 
 export const meta = () => ([
     { title: 'Resumind | Review ' },
@@ -114,11 +114,114 @@ const Resume = () => {
                     </nav>
                     <InlineResumeEditor 
                         feedback={feedback}
-                        onSave={(updatedFeedback) => {
+                        improvedResume={{
+                            summary: (feedback as any).improvedResume?.summary || '',
+                            skills: (feedback as any).improvedResume?.skills || [],
+                            experience: (feedback as any).improvedResume?.experience || '',
+                            education: (feedback as any).improvedResume?.education || '',
+                            estimatedScore: (feedback as any).improvedResume?.estimatedScore || feedback.overallScore
+                        }}
+                        onSave={async (updatedFeedback: Feedback, updatedImprovedResume?: ImprovedResume) => {
                             setFeedback(updatedFeedback);
-                            // Save to KV store
-                            const resumeData = { feedback: updatedFeedback };
-                            kv.set(`resume:${id}`, JSON.stringify(resumeData));
+                            
+                            try {
+                                // Get the full resume record from KV store
+                                const resumeRecord = await kv.get(`resume:${id}`);
+                                if (!resumeRecord) return;
+                                
+                                const currentData = JSON.parse(resumeRecord);
+                                
+                                // Generate new PDF HTML from edited resume data
+                                const pdfHTML = `
+                                  <div style="font-family: Arial, sans-serif; padding: 40px; color: #333;">
+                                    <div style="border-bottom: 3px solid #2c5282; padding-bottom: 15px; margin-bottom: 20px;">
+                                      <h1 style="margin: 0; color: #1a202c; font-size: 28px;">Professional Resume</h1>
+                                    </div>
+                                    
+                                    ${updatedImprovedResume?.summary ? `<div style="margin-bottom: 25px;">
+                                      <h2 style="color: #2c5282; border-bottom: 2px solid #2c5282; padding-bottom: 8px; margin-bottom: 10px;">Professional Summary</h2>
+                                      <p style="color: #2d3748; line-height: 1.6; margin: 0;">${updatedImprovedResume.summary}</p>
+                                    </div>` : ''}
+                                    
+                                    ${updatedImprovedResume?.skills?.length ? `<div style="margin-bottom: 25px;">
+                                      <h2 style="color: #2c5282; border-bottom: 2px solid #2c5282; padding-bottom: 8px; margin-bottom: 10px;">Skills</h2>
+                                      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                        ${Array.isArray(updatedImprovedResume.skills) ? updatedImprovedResume.skills.map(skill => `<span style="background: #edf2f7; color: #2c5282; padding: 6px 12px; border-radius: 4px; font-size: 14px;">${skill}</span>`).join('') : ''}
+                                      </div>
+                                    </div>` : ''}
+                                    
+                                    ${updatedImprovedResume?.experience ? `<div style="margin-bottom: 25px;">
+                                      <h2 style="color: #2c5282; border-bottom: 2px solid #2c5282; padding-bottom: 8px; margin-bottom: 10px;">Professional Experience</h2>
+                                      <p style="color: #2d3748; line-height: 1.6; margin: 0; white-space: pre-wrap;">${updatedImprovedResume.experience}</p>
+                                    </div>` : ''}
+                                    
+                                    ${updatedImprovedResume?.education ? `<div style="margin-bottom: 25px;">
+                                      <h2 style="color: #2c5282; border-bottom: 2px solid #2c5282; padding-bottom: 8px; margin-bottom: 10px;">Education</h2>
+                                      <p style="color: #2d3748; line-height: 1.6; margin: 0; white-space: pre-wrap;">${updatedImprovedResume.education}</p>
+                                    </div>` : ''}
+                                  </div>
+                                `;
+                                
+                                // Create temporary div for PDF generation
+                                const tempDiv = document.createElement('div');
+                                tempDiv.innerHTML = pdfHTML;
+                                tempDiv.style.position = 'absolute';
+                                tempDiv.style.left = '-9999px';
+                                tempDiv.style.width = '8.5in';
+                                document.body.appendChild(tempDiv);
+                                
+                                try {
+                                  const html2pdfModule = await import('html2pdf.js');
+                                  const html2pdf = (html2pdfModule as any).default || html2pdfModule;
+                                  
+                                  if (typeof html2pdf === 'function') {
+                                    const pdfDoc = html2pdf()
+                                      .set({
+                                        margin: 0.5,
+                                        filename: `Resume-${id}.pdf`,
+                                        image: { type: 'jpeg' as const, quality: 0.98 },
+                                        html2canvas: { scale: 2 },
+                                        jsPDF: { unit: 'in' as const, format: 'letter' as const, orientation: 'portrait' as const },
+                                      })
+                                      .from(tempDiv);
+                                    
+                                    // Save the PDF file
+                                    const canvas = await pdfDoc.outputPdf('blob');
+                                    const timestamp = Date.now();
+                                    const newResumePath = `/tmp/resume-${id}-${timestamp}.pdf`;
+                                    
+                                    await fs.write(newResumePath, canvas);
+                                    
+                                    // Update image preview
+                                    const newResumeUrl = URL.createObjectURL(canvas);
+                                    if (resumeUrl) URL.revokeObjectURL(resumeUrl);
+                                    setResumeUrl(newResumeUrl);
+                                    
+                                    // Update resume data with new PDF path
+                                    const updatedData = {
+                                      ...currentData,
+                                      feedback: updatedFeedback,
+                                      improvedResume: updatedImprovedResume,
+                                      resumePath: newResumePath
+                                    };
+                                    
+                                    await kv.set(`resume:${id}`, JSON.stringify(updatedData));
+                                  }
+                                } catch (pdfErr) {
+                                  console.warn('PDF generation failed, saving data only:', pdfErr);
+                                  const updatedData = {
+                                    ...currentData,
+                                    feedback: updatedFeedback,
+                                    improvedResume: updatedImprovedResume
+                                  };
+                                  await kv.set(`resume:${id}`, JSON.stringify(updatedData));
+                                } finally {
+                                  document.body.removeChild(tempDiv);
+                                }
+                                
+                            } catch (err) {
+                                console.error('Failed to save resume:', err);
+                            }
                         }}
                     />
                 </>

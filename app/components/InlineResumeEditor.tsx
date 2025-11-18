@@ -1,9 +1,10 @@
 import { useState, useRef } from "react";
-import type { Feedback } from "~/types";
+import type { Feedback, ImprovedResume } from "~/types";
 
 interface InlineResumeEditorProps {
   feedback: Feedback;
-  onSave?: (updatedFeedback: Feedback) => void;
+  improvedResume?: ImprovedResume;
+  onSave?: (updatedFeedback: Feedback, updatedImprovedResume?: ImprovedResume) => void;
 }
 
 interface EditableContent {
@@ -13,7 +14,7 @@ interface EditableContent {
   education: string;
 }
 
-const InlineResumeEditor = ({ feedback, onSave }: InlineResumeEditorProps) => {
+const InlineResumeEditor = ({ feedback, improvedResume, onSave }: InlineResumeEditorProps) => {
   const [isEditing, setIsEditing] = useState(false);
   
   // Helper function to safely convert skills to string
@@ -25,30 +26,24 @@ const InlineResumeEditor = ({ feedback, onSave }: InlineResumeEditorProps) => {
   };
 
   const [editContent, setEditContent] = useState<EditableContent>({
-    summary: feedback.summary || "Aspiring Machine Learning Engineer with strong foundation in data science and software development.",
-    skills: skillsToString(feedback.skills),
-    experience: feedback.experience?.content || "Senior Software Engineer at Tech Company\n• Led development of key features\n• Mentored junior developers\n• Improved performance by 40%",
-    education: feedback.education?.content || "Bachelor of Science in Computer Science\nUniversity Name, 2023"
+    summary: improvedResume?.summary || "Aspiring Machine Learning Engineer with strong foundation in data science and software development.",
+    skills: skillsToString(improvedResume?.skills),
+    experience: improvedResume?.experience || "Senior Software Engineer at Tech Company\n• Led development of key features\n• Mentored junior developers\n• Improved performance by 40%",
+    education: improvedResume?.education || "Bachelor of Science in Computer Science\nUniversity Name, 2023"
   });
   const [saveSuccess, setSaveSuccess] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
 
   const handleSaveChanges = () => {
-    const updatedFeedback = {
-      ...feedback,
+    const updatedImprovedResume: ImprovedResume = {
       summary: editContent.summary,
-      skills: editContent.skills.split(",").map(s => s.trim()).filter(Boolean),
-      experience: {
-        ...feedback.experience,
-        content: editContent.experience
-      } as any,
-      education: {
-        ...feedback.education,
-        content: editContent.education
-      } as any
+      skills: editContent.skills.split(",").map((s: string) => s.trim()).filter(Boolean),
+      experience: editContent.experience,
+      education: editContent.education,
+      estimatedScore: improvedResume?.estimatedScore || feedback.overallScore
     };
     
-    onSave?.(updatedFeedback);
+    onSave?.(feedback, updatedImprovedResume);
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2000);
   };
