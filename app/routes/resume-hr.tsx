@@ -2,10 +2,7 @@ import {Link, useNavigate, useParams} from "react-router";
 import {useEffect, useState} from "react";
 import {usePuterStore} from "~/lib/puter";
 import HRReviewResult from "~/components/HRReviewResult";
-import NeedBetterScore from "~/components/NeedBetterScore";
-import EnhancedResumeView from "~/components/EnhancedResumeView";
-import type { HRReview, ImprovedResume } from "~/types";
-import {prepareImprovementInstructions} from "../../constants";
+import type { HRReview } from "~/types";
 
 export const meta = () => ([
     { title: 'Resumind | HR Review ' },
@@ -13,17 +10,11 @@ export const meta = () => ([
 ])
 
 const ResumeHR = () => {
-    const { auth, isLoading, fs, kv, ai } = usePuterStore();
+    const { auth, isLoading, fs, kv } = usePuterStore();
     const { id } = useParams();
     const [imageUrl, setImageUrl] = useState('');
     const [resumeUrl, setResumeUrl] = useState('');
     const [hrReview, setHRReview] = useState<HRReview | null>(null);
-    const [improvedResume, setImprovedResume] = useState<ImprovedResume | null>(null);
-    const [isImproving, setIsImproving] = useState(false);
-    const [statusText, setStatusText] = useState('');
-    const [jobTitle, setJobTitle] = useState('');
-    const [jobDescription, setJobDescription] = useState('');
-    const [resumePath, setResumePath] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -51,81 +42,11 @@ const ResumeHR = () => {
             setImageUrl(imageUrl);
 
             setHRReview(data.hrReview);
-            setImprovedResume(data.improvedResume || null);
-            setJobTitle(data.jobTitle || '');
-            setJobDescription(data.jobDescription || '');
-            setResumePath(data.resumePath || '');
             console.log({resumeUrl, imageUrl, hrReview: data.hrReview });
         }
 
         loadResume();
     }, [id]);
-
-    const handleEnhanceResume = async () => {
-        if (!hrReview) return;
-        
-        setIsImproving(true);
-        setStatusText('Analyzing current resume...');
-
-        try {
-            // Read the resume file to extract text
-            const resumeBlob = await fs.read(resumePath);
-            if (!resumeBlob) {
-                setStatusText('Error: Failed to read resume');
-                setIsImproving(false);
-                return;
-            }
-
-            setStatusText('Generating improved resume with AI...');
-
-            // Prepare HR feedback string
-            const hrFeedbackStr = JSON.stringify({
-                overallSuitability: hrReview.overallSuitability,
-                skillAlignment: hrReview.skillAlignment,
-                experienceReview: hrReview.experienceReview,
-                suggestions: hrReview.suggestions,
-                roleFitScore: hrReview.roleFitScore,
-            });
-
-            // Call AI to improve resume
-            const improvement = await ai.feedback(
-                resumePath,
-                prepareImprovementInstructions({
-                    jobTitle,
-                    jobDescription,
-                    hrFeedback: hrFeedbackStr,
-                })
-            );
-
-            if (!improvement) {
-                setStatusText('Error: Failed to generate improvement');
-                setIsImproving(false);
-                return;
-            }
-
-            const improvementText = typeof improvement.message.content === 'string'
-                ? improvement.message.content
-                : improvement.message.content[0].text;
-
-            const improvedResumeData = JSON.parse(improvementText);
-            setImprovedResume(improvedResumeData);
-
-            // Save to KV store
-            const currentData = JSON.parse(await kv.get(`resume-hr:${id}`) || '{}');
-            currentData.improvedResume = improvedResumeData;
-            await kv.set(`resume-hr:${id}`, JSON.stringify(currentData));
-
-            setStatusText('Improvement complete!');
-        } catch (error) {
-            console.error('Error improving resume:', error);
-            setStatusText('Error: Failed to improve resume');
-        } finally {
-            setTimeout(() => {
-                setIsImproving(false);
-                setStatusText('');
-            }, 1000);
-        }
-    };
 
     return (
         <main className="!pt-0">
@@ -150,36 +71,17 @@ const ResumeHR = () => {
                     )}
                 </section>
                 <section className="feedback-section">
+                    <div className="mb-2 inline-block bg-purple-100 text-purple-800 px-4 py-2 rounded-full text-sm font-semibold">
+                        🏢 HR Job Match Analysis
+                    </div>
                     <h2 className="text-4xl !text-black font-bold">HR Resume Review</h2>
                     
-                    {isImproving ? (
-                        <div className="flex flex-col items-center animate-in fade-in duration-1000">
-                            <h3 className="text-2xl text-gray-700 mb-4">{statusText}</h3>
-                            <img src="/images/resume-scan-2.gif" className="w-full" />
-                            <p className="text-center text-gray-600 mt-4 text-lg">
-                                AI is crafting your enhanced resume...
-                            </p>
-                        </div>
-                    ) : hrReview ? (
+                    {hrReview ? (
                         <div className="flex flex-col gap-8 animate-in fade-in duration-1000">
                             <HRReviewResult review={hrReview} />
-                            
-                            {/* Show enhancement option if score < 80 and no improved resume yet */}
-                            {hrReview.roleFitScore < 80 && !improvedResume && (
-                                <NeedBetterScore onEnhance={handleEnhanceResume} />
-                            )}
-                            
-                            {/* Show improved resume if it exists */}
-                            {improvedResume && (
-                                <EnhancedResumeView 
-                                    improvedResume={improvedResume}
-                                    onSave={(edited) => setImprovedResume(edited)}
-                                    jobTitle={jobTitle}
-                                />
-                            )}
                         </div>
                     ) : (
-                        <div className="flex flex-col items-center">
+                        <div className="flex flex-col items-center animate-in fade-in duration-1000">
                             <img src="/images/resume-scan-2.gif" className="w-full" />
                             <p className="text-center text-gray-600 mt-4 text-lg">
                                 Analyzing your resume for HR insights...

@@ -11,7 +11,6 @@ import { useEffect } from "react";
 import type { Route } from "./+types/root";
 import "./app.css";
 import {usePuterStore} from "~/lib/puter";
-import ChatbaseWidget from "~/components/ChatbaseWidget";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -58,6 +57,31 @@ export function Layout({ children }: { children: React.ReactNode }) {
     };
   }, [init]);
 
+  useEffect(() => {
+    // Inject Chatbase embed snippet client-side so it runs on all pages.
+    // This uses the user's provided snippet but runs only in the browser.
+    if (typeof document === 'undefined') return;
+
+    const snippet = `(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="_6s85eyDIU1oYtvHEFAuA";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();`;
+
+    const s = document.createElement('script');
+    s.type = 'text/javascript';
+    s.id = 'chatbase-inline-snippet';
+    s.text = snippet;
+    document.body.appendChild(s);
+
+    return () => {
+      try {
+        const el = document.getElementById('chatbase-inline-snippet');
+        if (el && el.parentNode) el.parentNode.removeChild(el);
+        const remote = document.getElementById('_6s85eyDIU1oYtvHEFAuA');
+        if (remote && remote.parentNode) remote.parentNode.removeChild(remote);
+      } catch (e) {
+        // ignore cleanup errors
+      }
+    };
+  }, []);
+
   return (
     <html lang="en">
       <head>
@@ -67,9 +91,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <script src="https://js.puter.com/v2/"></script>
-        {children}
-        <ChatbaseWidget />
+  <script src="https://js.puter.com/v2/"></script>
+  {children}
         <ScrollRestoration />
         <Scripts />
       </body>
