@@ -15,9 +15,18 @@ interface EditableContent {
 
 const InlineResumeEditor = ({ feedback, onSave }: InlineResumeEditorProps) => {
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Helper function to safely convert skills to string
+  const skillsToString = (skills: any): string => {
+    if (!skills) return "Python, JavaScript, React, Node.js";
+    if (typeof skills === 'string') return skills;
+    if (Array.isArray(skills)) return skills.join(", ");
+    return "Python, JavaScript, React, Node.js";
+  };
+
   const [editContent, setEditContent] = useState<EditableContent>({
     summary: feedback.summary || "Aspiring Machine Learning Engineer with strong foundation in data science and software development.",
-    skills: (feedback.skills || ["Python", "JavaScript", "React", "Node.js"]).join(", "),
+    skills: skillsToString(feedback.skills),
     experience: feedback.experience?.content || "Senior Software Engineer at Tech Company\n• Led development of key features\n• Mentored junior developers\n• Improved performance by 40%",
     education: feedback.education?.content || "Bachelor of Science in Computer Science\nUniversity Name, 2023"
   });
