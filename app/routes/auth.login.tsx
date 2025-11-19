@@ -20,7 +20,7 @@ export default function AuthLogin() {
     }
   }, [user, navigate]);
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleEmailLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setLoading(true);
