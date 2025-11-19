@@ -33,27 +33,10 @@ export default function Home() {
       setLoadingResumes(true);
 
       try {
-        const resumesList = (await kv.list('resume:*', true)) as KVItem[];
-
-        if (!resumesList || resumesList.length === 0) {
-          setResumes([]);
-          setLoadingResumes(false);
-          return;
-        }
-
-        const parsedResumes = resumesList
-          .map((resume) => {
-            try {
-              return JSON.parse(resume.value) as Resume;
-            } catch (err) {
-              console.warn('Failed to parse resume:', err);
-              return null;
-            }
-          })
-          .filter((resume): resume is Resume => resume !== null);
-
-        setResumes(parsedResumes);
-        console.log(`Loaded ${parsedResumes.length} resumes`);
+        // TODO: Load resumes from Supabase once database schema is created
+        // For now, show empty state
+        setResumes([]);
+        console.log('Resume loading from Supabase - database schema needed');
       } catch (error) {
         console.error('Failed to load resumes:', error);
         setResumes([]);
@@ -63,7 +46,7 @@ export default function Home() {
     }
 
     loadResumes()
-  }, [kv, isClient]);
+  }, [isClient]);
 
   // Prevent hydration mismatch during SSR
   if (!isClient) {
