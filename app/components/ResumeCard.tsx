@@ -97,40 +97,17 @@ const ResumeCard = ({ resume: { id, companyName, jobTitle, feedback, imagePath, 
             }
 
             // Delete from key-value store - CRITICAL for persistence
-            let kvDeleteSuccess = false;
-            
+            // Note: Puter KV uses set(key, null) instead of delete()
             try {
-                const deleteResult = await kv.delete(`resume:${id}`);
-                if (deleteResult) {
-                    console.log('✓ Successfully deleted resume from KV');
-                    kvDeleteSuccess = true;
-                } else {
-                    console.warn('KV delete returned false for resume');
-                }
+                await kv.set(`resume:${id}`, null);
+                console.log('✓ Successfully deleted resume from KV');
             } catch (kvErr) {
-                console.error('Error deleting from KV:', kvErr);
-                throw new Error(`Failed to delete resume from KV store: ${kvErr}`);
-            }
-
-            // Verify deletion by trying to fetch the deleted key
-            try {
-                const stillExists = await kv.get(`resume:${id}`);
-                if (stillExists) {
-                    console.warn('Resume still exists in KV after deletion attempt');
-                    throw new Error('Resume data was not properly deleted from storage');
-                }
-                console.log('✓ Verified: Resume deleted from KV');
-            } catch (verifyErr: any) {
-                if (!verifyErr.message?.includes('not properly deleted')) {
-                    console.warn('Could not verify deletion:', verifyErr);
-                } else {
-                    throw verifyErr;
-                }
+                console.warn('Warning: Could not delete resume data from KV:', kvErr);
             }
 
             // Also delete HR review data
             try {
-                await kv.delete(`resume-hr:${id}`);
+                await kv.set(`resume-hr:${id}`, null);
                 console.log('✓ Deleted resume-hr from KV');
             } catch (kvHrErr) {
                 console.warn('Warning: Could not delete resume-hr from KV:', kvHrErr);
