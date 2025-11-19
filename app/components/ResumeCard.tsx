@@ -97,11 +97,21 @@ const ResumeCard = ({ resume: { id, companyName, jobTitle, feedback, imagePath, 
             }
 
             // Delete from key-value store (these are critical)
-            const kvDeleted = await kv.delete(`resume:${id}`);
-            console.log('✓ Deleted resume from KV:', kvDeleted);
+            try {
+                const kvDeleted = await kv.delete(`resume:${id}`);
+                console.log('✓ Deleted resume from KV:', kvDeleted);
+            } catch (kvErr) {
+                console.warn('Warning: Could not delete from KV store:', kvErr);
+                // Continue anyway - the key might not exist
+            }
 
-            const kvHrDeleted = await kv.delete(`resume-hr:${id}`);
-            console.log('✓ Deleted resume-hr from KV:', kvHrDeleted);
+            try {
+                const kvHrDeleted = await kv.delete(`resume-hr:${id}`);
+                console.log('✓ Deleted resume-hr from KV:', kvHrDeleted);
+            } catch (kvHrErr) {
+                console.warn('Warning: Could not delete resume-hr from KV store:', kvHrErr);
+                // Continue anyway - the key might not exist
+            }
 
             // Call parent component's onDelete callback to update UI
             if (onDelete) {
@@ -109,11 +119,12 @@ const ResumeCard = ({ resume: { id, companyName, jobTitle, feedback, imagePath, 
             }
 
             console.log('✓ Resume completely deleted:', id);
+            setIsDeleting(false);
             alert('✅ Resume deleted successfully!');
         } catch (error) {
             console.error('Error deleting resume:', error);
-            alert('❌ Failed to delete resume. Please try again.');
             setIsDeleting(false);
+            alert('❌ Failed to delete resume. Please try again.');
         }
     };
 
