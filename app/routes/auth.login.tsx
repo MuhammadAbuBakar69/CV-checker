@@ -5,12 +5,20 @@ import { supabase } from "~/lib/supabase";
 
 export default function AuthLogin() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { signInWithGoogle, signInWithGithub, loading: authLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+
+  // If already logged in, redirect to home
+  React.useEffect(() => {
+    if (user) {
+      navigate("/home");
+    }
+  }, [user, navigate]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
