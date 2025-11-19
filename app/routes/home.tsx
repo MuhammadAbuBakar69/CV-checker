@@ -278,26 +278,9 @@ export default function Home() {
                     <ResumeCard 
                       resume={resume} 
                       onDelete={async (id) => {
-                        // Remove the deleted resume from state immediately
-                        setResumes(resumes.filter(r => r.id !== id));
-                        
-                        // Force reload from KV to ensure consistency
-                        try {
-                          const resumesList = (await kv.list('resume:*', true)) as KVItem[];
-                          const parsedResumes = resumesList
-                            ?.map((r) => {
-                              try {
-                                return JSON.parse(r.value) as Resume;
-                              } catch {
-                                return null;
-                              }
-                            })
-                            .filter((r): r is Resume => r !== null) || [];
-                          setResumes(parsedResumes);
-                          console.log(`Reloaded: ${parsedResumes.length} resumes remaining`);
-                        } catch (err) {
-                          console.error('Failed to reload resumes after deletion:', err);
-                        }
+                        // Remove the deleted resume from state immediately for instant UI update
+                        setResumes(prevResumes => prevResumes.filter(r => r.id !== id));
+                        console.log('Resume deleted, card removed from UI:', id);
                       }}
                     />
                   </div>

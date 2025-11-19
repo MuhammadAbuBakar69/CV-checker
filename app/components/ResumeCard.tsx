@@ -103,15 +103,16 @@ const ResumeCard = ({ resume: { id, companyName, jobTitle, feedback, imagePath, 
             const kvHrDeleted = await kv.delete(`resume-hr:${id}`);
             console.log('✓ Deleted resume-hr from KV:', kvHrDeleted);
 
-            // Call parent component's onDelete callback
+            // Call parent component's onDelete callback to update UI
             if (onDelete) {
-                onDelete(id);
+                await onDelete(id);
             }
 
-            console.log('✓ Resume deleted successfully:', id);
+            console.log('✓ Resume completely deleted:', id);
+            alert('✅ Resume deleted successfully!');
         } catch (error) {
             console.error('Error deleting resume:', error);
-            alert('Failed to delete resume. Please try again.');
+            alert('❌ Failed to delete resume. Please try again.');
             setIsDeleting(false);
         }
     };
