@@ -11,6 +11,7 @@
   "dependencies": {
     "@react-router/node": "^7.5.3",
     "@react-router/serve": "^7.5.3",
+    "@supabase/supabase-js": "^2.83.0",
     "clsx": "^2.1.1",
     "html2pdf.js": "^0.12.1",
     "isbot": "^5.1.27",
@@ -21,7 +22,7 @@
     "react-dropzone": "^14.3.8",
     "react-router": "^7.5.3",
     "tailwind-merge": "^3.3.1",
-    "zustand": "^5.0.6"
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@babel/helper-annotate-as-pure": "^7.27.3",
